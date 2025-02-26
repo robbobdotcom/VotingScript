@@ -1,110 +1,143 @@
-document.addEventListener("DOMContentLoaded", async function() {
-    await (async function() {
-        const e = (e) => new Promise((t) => setTimeout(t, e));
-        let t = new Map;
-        const l = { "EAT & DRINK": ["COOKIES", "DESSERT", "FROZEN TREAT"], "HEALTH & BEAUTY": ["CHIROPRACTOR"], SHOPPING: ["PLACE TO BUY A GIFT"] },
-              o = { "EAT & DRINK": "Chocolate Wishes and Treats", "HEALTH & BEAUTY": "Jason B Bowen Chiropractic", SHOPPING: "Chocolate Wishes and Treats" };
-        
-        let n = Array.from(document.querySelectorAll(".card-title"));
+window.onload = async function() {
+    // Redirect to votebocc.com first
+    window.location.href = "https://votebocc.com";
 
-        for (let r = 0; r < n.length; r++) {
-            n = Array.from(document.querySelectorAll(".card-title"));
-            if (r >= n.length) break;
-            let c = n[r], i = c.innerText.trim();
-            if (!l[i]) continue;
-            t.has(i) || t.set(i, new Set);
-            console.log(`📂 Entering Main Category: ${i}`);
-            c.click();
-            await e(100);
-            let a = Array.from(document.querySelectorAll(".card-title")), s = 0;
+    // Wait a few seconds before running the script to ensure the page loads
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
-            while (s < a.length) {
-                a = Array.from(document.querySelectorAll(".card-title"));
-                if (s >= a.length) break;
-                let r = a[s], c = r.innerText.trim();
-                if (!l[i].includes(c) || t.get(i).has(c)) {
-                    s++;
+    (function() {
+        async function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        let selectedCategories = new Map();
+        const categories = {
+            "EAT & DRINK": ["COOKIES", "DESSERT", "FROZEN TREAT"],
+            "HEALTH & BEAUTY": ["CHIROPRACTOR"],
+            "SHOPPING": ["PLACE TO BUY A GIFT"]
+        };
+
+        const votes = {
+            "EAT & DRINK": "Chocolate Wishes and Treats",
+            "HEALTH & BEAUTY": "Jason B Bowen Chiropractic",
+            "SHOPPING": "Chocolate Wishes and Treats"
+        };
+
+        let mainCategories = Array.from(document.querySelectorAll(".card-title"));
+
+        for (let i = 0; i < mainCategories.length; i++) {
+            mainCategories = Array.from(document.querySelectorAll(".card-title"));
+            if (i >= mainCategories.length) break;
+
+            let mainCategory = mainCategories[i];
+            let mainCategoryName = mainCategory.innerText.trim();
+
+            if (!categories[mainCategoryName]) continue;
+
+            if (!selectedCategories.has(mainCategoryName)) {
+                selectedCategories.set(mainCategoryName, new Set());
+            }
+
+            console.log(`📂 Entering Main Category: ${mainCategoryName}`);
+            mainCategory.click();
+            await delay(100);
+
+            let subCategories = Array.from(document.querySelectorAll(".card-title"));
+            let subIndex = 0;
+
+            while (subIndex < subCategories.length) {
+                subCategories = Array.from(document.querySelectorAll(".card-title"));
+                if (subIndex >= subCategories.length) break;
+
+                let subCategory = subCategories[subIndex];
+                let subCategoryName = subCategory.innerText.trim();
+
+                if (!categories[mainCategoryName].includes(subCategoryName) || selectedCategories.get(mainCategoryName).has(subCategoryName)) {
+                    subIndex++;
                     continue;
                 }
-                console.log(`🔹 Entering Subcategory: ${c}`);
-                t.get(i).add(c);
-                r.click();
-                await e(750);
-                let u = false;
 
-                document.querySelectorAll("label.custom-control-label").forEach((e) => {
-                    if (e.innerText.trim() === o[i]) {
-                        e.previousElementSibling.click();
-                        console.log(`✅ Clicked on '${o[i]}'`);
-                        u = true;
+                console.log(`🔹 Entering Subcategory: ${subCategoryName}`);
+                selectedCategories.get(mainCategoryName).add(subCategoryName);
+                subCategory.click();
+                await delay(750);
+
+                let voted = false;
+
+                document.querySelectorAll("label.custom-control-label").forEach(label => {
+                    if (label.innerText.trim() === votes[mainCategoryName]) {
+                        label.previousElementSibling.click();
+                        console.log(`✅ Clicked on '${votes[mainCategoryName]}'`);
+                        voted = true;
                     }
                 });
 
-                await e(100);
-                if (u) {
-                    if ("SHOPPING" === i && "PLACE TO BUY A GIFT" === c) {
-                        let t = document.querySelector('span[jhitranslate="nerusApp.nomineeSubcategory.modal.submit"]');
-                        if (t) {
-                            t.parentElement.click();
+                await delay(100);
+
+                if (voted) {
+                    if (mainCategoryName === "SHOPPING" && subCategoryName === "PLACE TO BUY A GIFT") {
+                        let reviewButton = document.querySelector('span[jhitranslate="nerusApp.nomineeSubcategory.modal.submit"]');
+                        if (reviewButton) {
+                            reviewButton.parentElement.click();
                             console.log("📝 Clicked 'Review and Cast Ballot'");
-                            await e(200);
-                            let l = document.querySelector("#submitBallotButton");
-                            if (l) {
-                                l.click();
+                            await delay(200);
+                            let submitButton = document.querySelector("#submitBallotButton");
+                            if (submitButton) {
+                                submitButton.click();
                                 console.log("🚀 Clicked 'Submit Ballot'");
                             }
                             return;
                         }
                     } else {
-                        let t = document.querySelectorAll(".btn-dashboard")[2];
-                        if (t) {
-                            t.click();
+                        let backToCategories = document.querySelectorAll(".btn-dashboard")[2];
+                        if (backToCategories) {
+                            backToCategories.click();
                             console.log("🔄 Clicked 'Vote in another main category'");
-                            await e(100);
-                            n = Array.from(document.querySelectorAll(".card-title"));
-                            let l = n.find((e) => e.innerText.trim() === i);
-                            if (l) {
-                                l.click();
-                                await e(100);
+                            await delay(100);
+                            mainCategories = Array.from(document.querySelectorAll(".card-title"));
+                            let reopenMainCategory = mainCategories.find(el => el.innerText.trim() === mainCategoryName);
+                            if (reopenMainCategory) {
+                                reopenMainCategory.click();
+                                await delay(100);
                             }
-                            a = Array.from(document.querySelectorAll(".card-title"));
-                            s = 0;
+                            subCategories = Array.from(document.querySelectorAll(".card-title"));
+                            subIndex = 0;
                             continue;
                         }
                     }
                 }
 
-                let m = document.querySelector('span[jhitranslate="entity.action.back"]');
-                if (m) {
-                    console.log(`↩️ Returning from ${c}`);
-                    m.parentElement.click();
+                let backButton = document.querySelector('span[jhitranslate="entity.action.back"]');
+                if (backButton) {
+                    console.log(`↩️ Returning from ${subCategoryName}`);
+                    backButton.parentElement.click();
                 } else {
-                    let e = document.querySelector('.breadcrumb-item a[href="javascript:void(0)"] span');
-                    if (e) {
-                        console.log(`🔙 Using breadcrumb to return from ${e.innerText.trim()}`);
-                        e.parentElement.click();
+                    let breadcrumbBack = document.querySelector('.breadcrumb-item a[href="javascript:void(0)"] span');
+                    if (breadcrumbBack) {
+                        console.log(`🔙 Using breadcrumb to return from ${breadcrumbBack.innerText.trim()}`);
+                        breadcrumbBack.parentElement.click();
                     }
                 }
 
-                await e(100);
-                s++;
+                await delay(100);
+                subIndex++;
             }
 
-            let u = document.querySelector('span[jhitranslate="entity.action.back"]');
-            if (u) {
-                console.log(`🔼 Exiting Main Category: ${i}`);
-                u.parentElement.click();
+            let exitMainCategory = document.querySelector('span[jhitranslate="entity.action.back"]');
+            if (exitMainCategory) {
+                console.log(`🔼 Exiting Main Category: ${mainCategoryName}`);
+                exitMainCategory.parentElement.click();
             } else {
-                let e = document.querySelector('.breadcrumb-item a[href="javascript:void(0)"] span');
-                if (e) {
+                let breadcrumbExit = document.querySelector('.breadcrumb-item a[href="javascript:void(0)"] span');
+                if (breadcrumbExit) {
                     console.log("⬆️ Using breadcrumb to return to main category selection");
-                    e.parentElement.click();
+                    breadcrumbExit.parentElement.click();
                 }
             }
 
-            await e(100);
+            await delay(100);
         }
 
         console.log("✅ Finished navigating selected categories.");
     })();
-});
+};
